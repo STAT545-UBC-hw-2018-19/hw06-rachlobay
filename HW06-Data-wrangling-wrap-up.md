@@ -131,12 +131,135 @@ Question:
 
 In your own words, describe the difference between the sep and collapse arguments to str\_c().
 
+Answer:
+
+I suppose the easy (and cheap) solution would be to look up the str\_c() function and reiterate what it says the arguments are in my own words... But, I will use my example then interpret appraoch to try to see the differences between the two arguments.
+
+We shall look at the two arguments in str\_c() using an example where we will concatenate strings that pertain to a few of Van Gogh's famous paintings.
+
+If we just use the sep argument, let's see what we find.
+
+``` r
+str_c(c("The Starry Night", "Sunflowers", "The Potato Eaters"), "Van Gogh", sep = " ")
+```
+
+    ## [1] "The Starry Night Van Gogh"  "Sunflowers Van Gogh"       
+    ## [3] "The Potato Eaters Van Gogh"
+
+So we see that we get three strings "The Starry Night Van Gogh", "Sunflowers Van Gogh", and "The Potato Eaters Van Gogh". However, let's say we want to use `sep = " by "` so that we get, for example, "The Starry Night by Van Gogh" as one of our outputs. Does that work?
+
+``` r
+str_c(c("The Starry Night", "Sunflowers", "The Potato Eaters"), "Van Gogh", sep = " by ")
+```
+
+    ## [1] "The Starry Night by Van Gogh"  "Sunflowers by Van Gogh"       
+    ## [3] "The Potato Eaters by Van Gogh"
+
+Yes. It does. What we can say from this is that the sep argument puts a string of the sep argument in between the string arguments.
+
+Now, let's look at the collapse argument. We shall start by looking at its default.
+
+``` r
+str_c(c("The Starry Night", "Sunflowers", "The Potato Eaters"), " Van Gogh", collapse="")
+```
+
+    ## [1] "The Starry Night Van GoghSunflowers Van GoghThe Potato Eaters Van Gogh"
+
+By default we get no space between the strings. Furthermore, the output is a vector of length one with all the individual strings pasted together (as was discussed in class).
+
+We shall try to have a comma in between each of the strings when we use the collapse argument to collapse those strings down into a vector of length one.
+
+``` r
+str_c(c("The Starry Night", "Sunflowers", "The Potato Eaters"), " Van Gogh", collapse=", ")
+```
+
+    ## [1] "The Starry Night Van Gogh, Sunflowers Van Gogh, The Potato Eaters Van Gogh"
+
+We got what we wanted. So, it did work to use a comma as the argument of collapse.
+
+Now, what if we try to put a string "or" as the argument of collapse?
+
+``` r
+str_c(c("The Starry Night", "Sunflowers", "The Potato Eaters"), " Van Gogh", collapse="or")
+```
+
+    ## [1] "The Starry Night Van GoghorSunflowers Van GoghorThe Potato Eaters Van Gogh"
+
+No dice. the result doesn't produce or between each of the string arguments. Rather, we get the default collapse argument, which was just all the strings pasted together in one vector of length one with no space between the strings.
+
+What if we now used the sep and collapse arguments together.
+
+``` r
+str_c(c("The Starry Night", "Sunflowers", "The Potato Eaters"), " Van Gogh", sep = " by", collapse=", ")
+```
+
+    ## [1] "The Starry Night by Van Gogh, Sunflowers by Van Gogh, The Potato Eaters by Van Gogh"
+
+The output is one vector of length one with a comma between each of the original string arguments and a string of the sep argument " by" in between each of the original string arguments.
+
+Let's look at the big picture. What is the difference between the sep and collapse arguments of str\_c())? Simply put, the sep argument puts a string of the sep argument in between the string arguments, while the collapse argument separates the elements of the vector of length one.
+
 14.2.5 Exercise 3 - Write a function that turns a vector into a string
 ----------------------------------------------------------------------
 
 Question:
 
 Write a function that turns (e.g.) a vector c("a", "b", "c") into the string a, b, and c. Think carefully about what it should do if given a vector of length 0, 1, or 2.
+
+Answer:
+
+We shall create a function and test it using the vector c("U", "B", "C").
+
+The prompt wants us to handle vectors of length 0, 1, or 2. Therefore, when we design our function, we want to keep the deal with the cases of different vector lengths.
+
+For example: - A vector of length 0 would be the empty string "". - A vector of length 1 would be something like "U". - A vector of length 2 would be "U and B" (ie. we want to return a string of the two vector elements separated by and). - Finally, for a vector of length 3, we would have a string "U, B, and C" returned.
+
+An easy solution would be to use, cumbersome but effective, if-else statements to handle the case where the vector is less than length 2, exactly equal to length 2, and the case where the vector is greater than length 2.
+
+<!-- The last part under the else statement is a bit tricky to understand, so I will explain the steps. To minimize the code, I only used two lines. In the first line, I created a vector of length one of all the elements but the last element of the original vector, where each element is separated by a comma. The second line is where I simply add ", and " between the vector of length one and last element.-->
+``` r
+vector_to_string_fun <- function(x){
+  # handles the cases where the vector is less than length 2
+  if(length(x) < 2){
+    x
+  }
+  # handles the cases where the vector is exactly length 2
+  else if(length(x) == 2){
+    x %>% 
+    str_c(x[1], " and ", x[2]) # separates the two elements of the vector by " and "
+  }
+  else {
+     # handles the cases where the vector is > than length 2
+    # create a vector of length one of all the elements but the last element of the vector, where each element is separated by a comma
+    str_before_last <- str_c(x[seq_len(length(x)-1)], collapse = ", ")
+    # add ", and " between str_before_last and last element
+    str_c(str_before_last, ", and ", x[length(x)])
+  }
+}
+```
+
+Now we shall test it using our ubc example.
+
+``` r
+# Define ubc vector
+ubc <- c("U", "B", "C")
+
+vector_to_string_fun(ubc)
+```
+
+    ## [1] "U, B, and C"
+
+We got what we wanted - a vector of length 1 that is a string "U, B, and C".
+
+14.3.3.1 Exercise 1 - Create regular expressions to find all words
+------------------------------------------------------------------
+
+Create regular expressions to find all words that:
+
+1.  Start with a vowel.
+2.  That only contain consonants. (Hint: thinking about matching “not”-vowels.)
+3.  End with `ed`, but not with `eed`.
+4.  End with `ing` or `ise`.
 
 14.3.4.1 Exercise 4 - Solve the beginner regexp crosswords
 ----------------------------------------------------------
