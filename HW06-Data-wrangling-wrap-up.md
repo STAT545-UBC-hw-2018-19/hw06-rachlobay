@@ -7,10 +7,10 @@ Table of contents
 =================
 
 -   [Part 1: Character Data Overview](#part-1-character-data-overview)
-    -   [14.2.5 Exercise 1: Difference between paste() and paste0()](#14.2.5-exercise-1-difference-between-paste-and-paste0)
-    -   [14.2.5 Exercise 2: Difference between sep and collapse arguments to str\_c()](#14.2.5-exercise-2-difference-between-sep-and-collapse-arguments-to-str_c)
-    -   [14.2.5 Exercise 3: Write a function that turns a vector into a string](#14.2.5exercise-3-write-a-function-that-turns-a-vector-into-a-string)
-    -   [14.3.3 Exercise 1: Create regular expressions to find all words](#14.3.3-exercise-1-create-regular-expressions-to-find-all-words)
+    -   [Exercise 1: Difference between paste() and paste0()](#exercise-1-difference-between-paste-and-paste0)
+    -   [Exercise 2: Difference between sep and collapse arguments to str\_c()](#exercise-2-difference-between-sep-and-collapse-arguments-to-str_c)
+    -   [Exercise 3: Write a function that turns a vector into a string](#exercise-3-write-a-function-that-turns-a-vector-into-a-string)
+    -   [Exercise 1: Create regular expressions to find all words](#exercise-1-create-regular-expressions-to-find-all-words)
 
 Part 1: Character Data Overview
 ===============================
@@ -24,10 +24,10 @@ library(tidyverse)
 library(stringr)
 ```
 
-14.2.5 Exercise 1: Difference between paste() and paste0()
-----------------------------------------------------------
+Exercise 1: Difference between paste() and paste0()
+---------------------------------------------------
 
-Questions:
+Question from Section 14.2.5:
 
 In code that doesn’t use stringr, you’ll often see paste() and paste0(). What’s the difference between the two functions? What stringr function are they equivalent to? How do the functions differ in their handling of NA?
 
@@ -123,10 +123,10 @@ Again, there is just a NA returned.
 
 Based on our examples, we can conclude that the str\_c() function will return a NA if any argument is NA.
 
-14.2.5 Exercise 2: Difference between sep and collapse arguments to str\_c()
-----------------------------------------------------------------------------
+Exercise 2: Difference between sep and collapse arguments to str\_c()
+---------------------------------------------------------------------
 
-Question:
+Question from Section 14.2.5:
 
 In your own words, describe the difference between the sep and collapse arguments to str\_c().
 
@@ -198,10 +198,10 @@ The output is one vector of length one with a comma between each of the original
 
 Let's look at the big picture. What is the difference between the sep and collapse arguments of str\_c())? Simply put, the sep argument puts a string of the sep argument in between the string arguments, while the collapse argument separates the elements of the vector of length one.
 
-14.2.5 Exercise 3: Write a function that turns a vector into a string
----------------------------------------------------------------------
+Exercise 3: Write a function that turns a vector into a string
+--------------------------------------------------------------
 
-Question:
+Question from Section 14.2.5:
 
 Write a function that turns (e.g.) a vector c("a", "b", "c") into the string a, b, and c. Think carefully about what it should do if given a vector of length 0, 1, or 2.
 
@@ -250,8 +250,10 @@ vector_to_string_fun(ubc)
 
 We got what we wanted - a vector of length 1 that is a string "U, B, and C".
 
-14.3.3 Exercise 1: Create regular expressions to find all words
----------------------------------------------------------------
+Exercise 1: Create regular expressions to find all words
+--------------------------------------------------------
+
+Question from Section 14.3.3:
 
 Create regular expressions to find all words that:
 
@@ -361,17 +363,6 @@ str_view_all("i(ng|se)$", match = TRUE)
 
 Again, we get that it appears to produce the correct output, giving us the words that end with `ing` or `ise`. So, our winning streak continues.
 
-14.4.3.1 Exercise \# 2
-----------------------
-
-Question:
-
-From the Harvard sentences data, extract:
-
-1.  The first word from each sentence.
-2.  All words ending in ing.
-3.  All plurals.
-
 14.7.1 Exercise \# 1 on Stringi package functions
 -------------------------------------------------
 
@@ -389,3 +380,14 @@ Find the stringi functions that:
 Question:
 
 How do you control the language that stri\_sort() uses for sorting?
+
+Part 2: Writing Functions
+=========================
+
+In this task, I will write a function to do something useful to part of the Gapminder data. In particular, I will generalize what was done with the linear regression function from [here](http://stat545.com/block012_function-regress-lifeexp-on-year.html) to do quadratic regression using the Gapminder data set.
+
+``` r
+library(gapminder)
+```
+
+To fit the quadratic model, it is easiest to think of it as a linear regression model with two variables - the original term and the squared original term.
