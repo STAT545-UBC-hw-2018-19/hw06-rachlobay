@@ -10,7 +10,7 @@ Table of contents
     -   [Exercise 1: Difference between paste() and paste0()](#exercise-1-difference-between-paste-and-paste0)
     -   [Exercise 2: Difference between sep and collapse arguments to str\_c()](#exercise-2-difference-between-sep-and-collapse-arguments-to-str_c)
     -   [Exercise 3: Write a function that turns a vector into a string](#exercise-3-write-a-function-that-turns-a-vector-into-a-string)
-    -   [Exercise 1: Create regular expressions to find all words](#exercise-1-create-regular-expressions-to-find-all-words)
+    -   [Exercise 4: Create regular expressions to find all words](#exercise-4-create-regular-expressions-to-find-all-words)
 
 Part 1: Character Data Overview
 ===============================
@@ -250,7 +250,7 @@ vector_to_string_fun(ubc)
 
 We got what we wanted - a vector of length 1 that is a string "U, B, and C".
 
-Exercise 1: Create regular expressions to find all words
+Exercise 4: Create regular expressions to find all words
 --------------------------------------------------------
 
 Question from Section 14.3.3:
