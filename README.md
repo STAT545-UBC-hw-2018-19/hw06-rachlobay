@@ -19,6 +19,6 @@ I used the linear regression function presented [here](http://stat545.com/block0
 
 |               | Quick and important links|
 | ------------- |-------------|
-|  :heavy_check_mark: | [Data wrangling wrap up (.Rmd)](https://github.com/STAT545-UBC-students/hw04-rachlobay/blob/master/STAT545-HW04-Tidy-data-and-joins.Rmd)| 
-|  :heavy_check_mark: | [Data wrangling wrap up (.md)](https://github.com/STAT545-UBC-students/hw04-rachlobay/blob/master/STAT545-HW04-Tidy-data-and-joins.md)| 
+|  :heavy_check_mark: | [Data wrangling wrap up (.Rmd)](https://github.com/STAT545-UBC-students/hw06-rachlobay/blob/master/HW06-Data-wrangling-wrap-up.Rmd)| 
+|  :heavy_check_mark: | [https://github.com/STAT545-UBC-students/hw06-rachlobay/blob/master/HW06-Data-wrangling-wrap-up.md)| 
 
