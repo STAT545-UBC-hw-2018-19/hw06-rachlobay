@@ -8,13 +8,13 @@ always_allow_html: yes
 
 # Table of contents
 
-- [Cheat sheet for tidyr functions](#cheat-sheet-for-tidyr-functions)
-- [Stop. How do we want to handle a data set in RStudio?](#stop-how-do-we-want-to-handle-a-data-set-in-rstudio)
-- [Quick refresher on dplyr](#quick-refresher-on-dplyr)
-    + [filter() and select() functions](#filter-and-select-functions)
-        - [select() function](#select-function)
-        - [filter() function](#filter-function)
-        
+- [Part 1: Character Data Overview](#part-1-character-data-overview)
+    + [14.2.5 Exercise 1: Difference between paste() and paste0()](#14.2.5-exercise-1-difference-between-paste-and-paste0)
+    + [14.2.5 Exercise 2: Difference between sep and collapse arguments to str_c()](#14.2.5-exercise-2-difference-between-sep-and-collapse-arguments-to-str_c)
+    + [14.2.5 Exercise 3: Write a function that turns a vector into a string](#14.2.5exercise-3-write-a-function-that-turns-a-vector-into-a-string)    
+    + [14.3.3 Exercise 1: Create regular expressions to find all words](#14.3.3-exercise-1-create-regular-expressions-to-find-all-words)
+ 
+                        
         
 # Part 1: Character Data Overview
 
@@ -28,7 +28,7 @@ library(stringr)
 ```
 
 
-## 14.2.5 Exercise 1 - Difference between paste() and paste0() 
+## 14.2.5 Exercise 1: Difference between paste() and paste0() 
 
 Questions: 
 
@@ -107,7 +107,7 @@ Again, there is just a NA returned.
 
 Based on our examples, we can conclude that the str_c() function will return a NA if any argument is NA.
 
-## 14.2.5 Exercise 2 - Difference between sep and collapse arguments to str_c()
+## 14.2.5 Exercise 2: Difference between sep and collapse arguments to str_c()
 
 Question:
 
@@ -165,7 +165,7 @@ Let's look at the big picture. What is the difference between the sep and collap
 
 
 
-## 14.2.5 Exercise 3 - Write a function that turns a vector into a string
+## 14.2.5 Exercise 3: Write a function that turns a vector into a string
 
 Question:
 
@@ -220,7 +220,7 @@ vector_to_string_fun(ubc)
 
 We got what we wanted - a vector of length 1 that is a string "U, B, and C".
 
-## 14.3.3.1 Exercise 1 - Create regular expressions to find all words
+## 14.3.3 Exercise 1: Create regular expressions to find all words
 
 Create regular expressions to find all words that:
 
@@ -229,9 +229,97 @@ Create regular expressions to find all words that:
 3.  End with `ed`, but not with `eed`.
 4.  End with `ing` or `ise`.
 
+For some background, this exerise pertains to the part of the chapter on viewing HTML rendering of expression matches for which we will use a variant of the the str_view() function. 
 
-## 14.3.4.1 Exercise 4 - Solve the beginner regexp crosswords
-I will solve the beginner regexp crosswords from [here](https://regexcrossword.com/challenges/beginner).
+Answer: 
+Before we get to creating the expressions, we should go over the five useful tools from the [notes](https://r4ds.had.co.nz/strings.html) corresponding to this exercise that are special patterns that match more than one character:
+
+- `.`:  matches any character apart from a newline.
+- `\d`: matches any digit.
+- `\s`: matches any whitespace (e.g. space, tab, newline).
+- `[abc]`: matches a, b, or c.
+- `[^abc]`: matches anything except a, b, or c.
+
+Don't forget position indicators from cm102!
+
+- `^` corresponds to the __beginning__ of the line.
+- `$` corresponds to the __end__ of the line.
+
+And don't forget about quantifiers/repetition from cm102!
+
+- `*` for 0 or more
+- `+` for 1 or more
+- `?` for 0 or 1
+
+Also, from the [notes](https://r4ds.had.co.nz/strings.html), "You can use alternation to pick between one or more alternative patterns. For example, abc|xyz will match either "abc", or "xyz"." We can see this will come in handy for solving 4. where we want to find all words ending with `ing` or `ise`. Furthermore, "if precedence ever gets confusing, use parentheses to make it clear what you want". Meaning, like we discussed in cm102, use parentheses to indicate precedence.
+
+Next, what function do we use str_view() or str_view_all()?
+
+Note that str_view() shows the first match of a pattern. Therefore, we will use the str_view_all() function to show all the matches for a particular pattern. Note that I will set `match = TRUE` because then we control what is shown to see only the strings that have the pattern.
+
+Now, we shall start to tackle 1.
+
+1.  Find all words that start with a vowel.
+
+Note that I set `match = TRUE` because then we see only strings that have the pattern and not all of them. From our above tool set, we can see that we want to match the vowels (including y). So we use, [aeiouy]. Additionall, since we want the words that START with a vowel, we use the position indicator ^. Hence, the solution is:
+
+```{r}
+words %>% 
+  str_view_all("^[aeouiy]", match = TRUE)
+```
+
+We can see this appears to produce the correct output for words that start with a vowel (although there are a lot of matches to go through).
+
+2.  Find all words only contain consonants. (Hint: thinking about matching “not”-vowels.)
+
+The hint basically gives us the key to the solution. From our tool kit above, we see `[^abc]`: matches anything except a, b, or c. Hence, we will use [^aeouiy]. Next, we want to consider the words begin with a vowel, continue without a vowel, and end without a vowel. So, we use the beginning indicator ^, * that indicates 0 or more, and finish off with the ending position indicator $.
+
+```{r}
+words %>% 
+str_view_all("^[^aeouiy]*$", match = TRUE)
+```
+
+We can see this appears to produce the correct output for words that only contain consonants.
+
+3.  Find all words that end with `ed`, but not with `eed`.
+
+So, we want all words that end with `ed`. We can use the ending position indicator `$` to achieve that. So we have `ed`. Next, we don't want the words that end with `eed`. To do that, we can refer to the pattern `[^abc]`: matches anything except a, b, or c. So, all together, the pattern is `[^e]ed$`. Let's see if that works...
+
+```{r}
+words %>% 
+str_view_all("[^e]ed$", match = TRUE)
+```
+
+Looks like this appears to produce the correct output for words that end with `ed`, but not with `eed`.
+
+4.  Find all words that end with `ing` or `ise`.
+
+This was the problem that clearly used the alternation symbol | (which is basically "or"). Now, since ing and ise overlap with the i character, we will use parentheses like did with the beer or bear example in cm102, which I will post below:
+
+```{r}
+# first define function str_view_all_match
+str_view_all_match <- function(countries, pattern) {
+    str_view_all(countries, pattern, match=TRUE)
+}
+```
+
+Beer or bear?
+
+```{r}
+c("bear", "beer", "bar") %>% 
+    str_view_all_match(pattern = "be(e|a)r")
+```
+
+In that example, we used be(e|a)r to say that the letter after be could either be an e or a and then we finished off that word with r. Hence, we got beer or bear as the output.
+
+Similarly, like I said above, ing and ise overlap with the i character, so we can do i(ng|se). And we want all words ending with ing or ise, so we also use the ending position indicator `$` to get i(ng|se)$. Let's see the code in full for this question:
+
+```{r}
+words %>% 
+str_view_all("i(ng|se)$", match = TRUE)
+```
+
+Again, we get that it appears to produce the correct output, giving us the words that end with `ing` or `ise`. So, our winning streak continues. 
 
 ## 14.4.3.1 Exercise # 2 
 
