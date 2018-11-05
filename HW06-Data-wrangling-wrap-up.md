@@ -7,7 +7,7 @@ Table of contents
 =================
 
 -   [Part 1: Character Data Overview](#part-1-character-data-overview)
-    -   [14.2.5 Exercise 1: Difference between paste() and paste0()](#14.2.5-exercise-1-difference-between-pasteand-paste0)
+    -   [14.2.5 Exercise 1: Difference between paste() and paste0()](#14.2.5-exercise-1:-difference-between-paste()-and-paste0())
     -   [14.2.5 Exercise 2: Difference between sep and collapse arguments to str\_c()](#14.2.5-exercise-2-difference-between-sep-and-collapse-arguments-to-str_c)
     -   [14.2.5 Exercise 3: Write a function that turns a vector into a string](#14.2.5exercise-3-write-a-function-that-turns-a-vector-into-a-string)
     -   [14.3.3 Exercise 1: Create regular expressions to find all words](#14.3.3-exercise-1-create-regular-expressions-to-find-all-words)
