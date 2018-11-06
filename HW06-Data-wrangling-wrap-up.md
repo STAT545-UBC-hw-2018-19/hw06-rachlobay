@@ -371,6 +371,12 @@ Again, we get that it appears to produce the correct output, giving us the words
 14.7.1 Exercise \# 1 on Stringi package functions
 -------------------------------------------------
 
+Since the next two problems use the Stringi package, I will try to elaborate a bit on what that package is. Additionally, I will mention some of the main differences between the Stringi and Stringr packages (since they sound similar enough).
+
+From the [stringi-package documentation](https://www.rdocumentation.org/packages/stringi/versions/1.2.4/topics/stringi-package), it is marketed as being "the R package for fast, correct, consistent, and convenient string/text manipulation. It gives predictable results on every platform, in each locale, and under any \`\`native". I think that about sums up the overall view of the package. However, that definition makes it sound similar to stringr, no?
+
+So, now I will try to differentiate between the two packages, stringi and stringr.
+
 Question:
 
 Find the stringi functions that:
@@ -393,7 +399,15 @@ In this task, I will write a function to do something useful to part of the Gapm
 
 ``` r
 library(gapminder)
+library(MASS)
 ```
+
+    ## 
+    ## Attaching package: 'MASS'
+
+    ## The following object is masked from 'package:dplyr':
+    ## 
+    ##     select
 
 To fit the quadratic model, it is easiest to think of it as a linear regression model with two variables - the original term and the squared original term.
 
@@ -470,15 +484,60 @@ coef(j_fit)  # coefficients of the model
 Now, are those estimates reasonable? Nope. For example, the intercept estimate for the life expectancy is 1158.548 years corresponding to the year 0 AD. Such a high life expectancy is unheard of! Hence, we must reparameterize our model. It makes more sense to make the intercept correspond to the life expectancy in 1952 (because that is the first year our data set has information on). We shall achieve this by correcting the linear term's life expectancy by subtracting 1952. Also, we must correct the quadratic term's life expectancy by subtracting 1952 squared. Let's see if our estimates are more realistic when we do this...
 
 ``` r
-j_fit <- lm(lifeExp ~ I(year - 1952) + I(year^2 - 1952^2), j_dat)
+q_j_fit <- lm(lifeExp ~ I(year - 1952) + I(year^2 - 1952^2), data = j_dat)
 
-coef(j_fit)  # coefficients of the model
+coef(q_j_fit)  # coefficients of the model
 ```
 
     ##        (Intercept)     I(year - 1952) I(year^2 - 1952^2) 
     ##      67.7145521978      -1.2960060639       0.0003776523
 
-Much better. We can see the estimated lifeExp in 1952 is 67.7145521978 years of age, which is pretty reasonable.
+We can see the estimated lifeExp in 1952 is 67.7145521978 years of age, which is pretty reasonable. However, notice that the slope coefficient from the quadratic model is negative, which doesn't make sense given that our plot of quadratic regression of Ireland's lifeExp over the years shows a roughly straight line with positive slope. What is happening is that the model is fitting a line to best explain the data and the line is a straight line and not a quadratic curve.
+
+We can test whether or not the quadratic model is actually contributing significant information to the model is to do an ANOVA of the reduced model (linear model) versus the full model (the quadratic model because it includes the linear term).
+
+In this hypothesis test, we set alpha (the significance level) to be 0.05. Our null hypothesis is that the quadratic coefficient is 0. Then, the alternate hypothesis is that the quadratic coefficient is non-0.
+
+``` r
+l_j_fit <- lm(lifeExp ~ I(year - 1952), data = j_dat)
+q_j_fit <- lm(lifeExp ~ I(year - 1952) + I(year^2 - 1952^2), data = j_dat)
+
+anova(l_j_fit,q_j_fit)
+```
+
+    ## Analysis of Variance Table
+    ## 
+    ## Model 1: lifeExp ~ I(year - 1952)
+    ## Model 2: lifeExp ~ I(year - 1952) + I(year^2 - 1952^2)
+    ##   Res.Df    RSS Df Sum of Sq      F Pr(>F)
+    ## 1     10 2.2835                           
+    ## 2      9 2.1645  1   0.11897 0.4947 0.4996
+
+Since the p-value is 0.4996 &gt; alpha = 0.05, we cannot reject the null hypothesis that the quadratic coefficient is 0. This means that we can conclude that the quadratic term does not appear to contribute significant information once the linear term has been included in the model at the 0.05 significance level. So, the linear model would be the model to use in this case.
+
+Now, it is a good idea to check that the predictions of lifeExp are reasonavle, given a couple of years to test. Since the linear model has proven to be best, we will first plot the linear model and inspect our predictive estimates.
+
+First, I will plot the linear regression model of Ireland's lifeExp over the years.
+
+``` r
+p <- ggplot(j_dat, aes(x = year, y = lifeExp))
+
+p + geom_point() + geom_smooth(method = "lm", formula = y ~ x, size = 1) + ggtitle("Linear regression of Ireland's lifeExp over the years")
+```
+
+![](HW06-Data-wrangling-wrap-up_files/figure-markdown_github/unnamed-chunk-31-1.png)
+
+Now, we will create a new data frame of a couple of years and see what the model gives us as the predictions for lifeExp for a few years that are within the range of years of our model (1952 to 2007).
+
+``` r
+new.df <- data.frame(year=c(1955, 1965, 2004))
+predict(l_j_fit, new.df)
+```
+
+    ##        1        2        3 
+    ## 68.13882 70.13002 77.89568
+
+So we see that the esimate of lifeExp for 1955 is about 68.14 years, the lifeExp for 1965 is about 70.13 years, and the lifeEp for 2004 is about 77.90 years. Those estimates seem reasonable because as the years increase, we expect the lifeExp to increase modestly. Now, do these estimates of life expectancy appear match with the straight regression line in the linear regression plot? Yes, because in the case of simple linear regression when we plot the predicted values of lifeExp (y) as a function of year (x), we get that straight line.
 
 Create a function to obtain the offset quadratic regression coefficients
 ------------------------------------------------------------------------
@@ -501,20 +560,20 @@ est_of_quad_fit(j_dat)
 
 The coefficients produced by `coef(j_fit)` and by our function `est_of_quad_fit` are precisely the same.
 
-Now, was was said in the 545 notes on linear regression, the return value names I(year - 1952) and I(year^2 - 1952^2), are not particularly pretty or informative. It is good practice to fix those names now to something a little more descriptive. We shall do so inside the function so that we regardless of what data we put into our function, wedon't have to change the names of the linear and quadratic estimates. Additionally, since we are already changing the names of the linear and quadratic estimates, we shall also tweak the format of the intercept name so there are no brackets around it.
+Now, was was said in the 545 notes on linear regression, the return value names I(year - 1952) and I(year^2 - 1952^2), are not particularly pretty or informative. It is good practice to fix those names now to something a little more descriptive. We shall do so inside the function so that, regardless of what data we put into our function, we don't have to change the names of the linear and quadratic estimates. I will change the linear name to be slope because that is what the linear coefficient represents. The slope could be positive to indicate that as the value of x increases the value of y increases. Or, the slope could be negative to indicate that as the value of x increases the value of y decreases. The quadratic coefficient's name will be changed to curvature because that is what the coefficient indicates. As a note for curvature, if the curvature is concave up, we get a positive quadratic coefficent. If the curvature is concave down, the quadratic coefficient is negative. Additionally, since we are already changing the names of the linear and quadratic estimates, we shall also tweak the format of the intercept name so there are no brackets around it.
 
 ``` r
 est_of_quad_fit <- function(dat, offset = 1952){
   the_fit <- lm(lifeExp ~ I(year - 1952) + I(year^2 - 1952^2), dat)
-  setNames(coef(the_fit), c("intercept", "linear coefficient", "quadratic coefficient"))
+  setNames(coef(the_fit), c("intercept", "slope", "curvature"))
   
 }
 
 est_of_quad_fit(j_dat)
 ```
 
-    ##             intercept    linear coefficient quadratic coefficient 
-    ##         67.7145521978         -1.2960060639          0.0003776523
+    ##     intercept         slope     curvature 
+    ## 67.7145521978 -1.2960060639  0.0003776523
 
 Test on other gapminder countries
 ---------------------------------
@@ -554,7 +613,7 @@ p <- ggplot(j_dat, aes(x = year, y = lifeExp))
 p + geom_point() + stat_smooth(method = "lm", formula = y ~ x + I(x^2), size = 1) + ggtitle("Quadratic regression of Jamaica's lifeExp over the years")
 ```
 
-![](HW06-Data-wrangling-wrap-up_files/figure-markdown_github/unnamed-chunk-33-1.png)
+![](HW06-Data-wrangling-wrap-up_files/figure-markdown_github/unnamed-chunk-36-1.png)
 
 Now, we will fit a quadratic model to the data using our handy est\_of\_quad\_fit function.
 
@@ -562,10 +621,58 @@ Now, we will fit a quadratic model to the data using our handy est\_of\_quad\_fi
 est_of_quad_fit(j_dat)
 ```
 
-    ##             intercept    linear coefficient quadratic coefficient 
-    ##          59.540153846          27.178585315          -0.006809091
+    ##    intercept        slope    curvature 
+    ## 59.540153846 27.178585315 -0.006809091
 
-Based on the intercept and linear and quadratic coefficients, the quadratic fit is not too shabby because the plot and the estimated coefficients roughly match up.
+Based on the intercept and linear and quadratic coefficients, the quadratic fit is not too shabby because the plot and the estimated coefficients roughly match up. The linear coefficient this time is positive (indicating the roughly increasing lifeExp) and the negative quadratic (or curvature coefficient) indicates that the plot is concave down. Furthermore, based on a comparison of the plots, when we compare Ireland and Jamaica, it seems that Jamaica is more well-suited to a quadratic model because the quadratic regression plot for the Jamaica data fits more closely to the quadratic shape than Ireland (which was clearly more linear shaped).
+
+Now, I will skip the ANOVA comparison of the partial (linear) model to the full (quadratic) model. Instead, I will show a different method to decide what model is best. A natural question would be, what polynomial model is best (a linear model, quadratic model, cubic model, or some higher order model)? So, we will start with the model `lm(lifeExp ~ I(year - 1952) + I(year^2 - 1952^2) + I(year^3 - 1952^3) + I(year^4 - 1952^4)  + I(year^5 - 1952^5))`. We don't want to overfit the model, so I think that the highest term being order 6 is ok.
+
+We could do a step down AIC regression to find what model is best (using stepAIC() from the MASS package). The code to do step down AIC regression is simple but devastatingly effective. The basic idea is that a smaller AIC value is more likely to represent the true model. What happens, is that from the model with the full number of terms, the model does backward selection to remove terms until it cannot make the AIC value any smaller by removing terms. By backward selection, I mean that we start with the model with all the terms, then we drop the least significant term (assuming the AIC can me made smaller by dropping a term). Then, we look at the reduced model and drop the least significant variable and rinse and repeat that process until the AIC value is not made any smaller by removing terms.
+
+``` r
+jamaica_order_6_lm <- lm(lifeExp ~ I(year - 1952) + I(year^2 - 1952^2) + I(year^3 - 1952^3) + I(year^4 - 1952^4)  + I(year^5 - 1952^5) + I(year^6 - 1952^6), data = j_dat)
+
+stepAIC(jamaica_order_6_lm)
+```
+
+    ## Start:  AIC=-33.6
+    ## lifeExp ~ I(year - 1952) + I(year^2 - 1952^2) + I(year^3 - 1952^3) + 
+    ##     I(year^4 - 1952^4) + I(year^5 - 1952^5) + I(year^6 - 1952^6)
+
+    ## Warning in stepAIC(jamaica_order_6_lm): 0 df terms are changing AIC
+
+    ## 
+    ## Step:  AIC=-33.6
+    ## lifeExp ~ I(year - 1952) + I(year^2 - 1952^2) + I(year^3 - 1952^3) + 
+    ##     I(year^4 - 1952^4) + I(year^5 - 1952^5)
+
+    ## Warning in stepAIC(jamaica_order_6_lm): 0 df terms are changing AIC
+
+    ## 
+    ## Step:  AIC=-33.6
+    ## lifeExp ~ I(year - 1952) + I(year^2 - 1952^2) + I(year^3 - 1952^3) + 
+    ##     I(year^5 - 1952^5)
+    ## 
+    ##                      Df Sum of Sq     RSS     AIC
+    ## <none>                            0.31722 -33.597
+    ## - I(year^5 - 1952^5)  1  0.069845 0.38706 -33.209
+    ## - I(year^3 - 1952^3)  1  0.073294 0.39051 -33.102
+    ## - I(year^2 - 1952^2)  1  0.075094 0.39231 -33.047
+    ## - I(year - 1952)      1  0.076948 0.39417 -32.991
+
+    ## 
+    ## Call:
+    ## lm(formula = lifeExp ~ I(year - 1952) + I(year^2 - 1952^2) + 
+    ##     I(year^3 - 1952^3) + I(year^5 - 1952^5), data = j_dat)
+    ## 
+    ## Coefficients:
+    ##        (Intercept)      I(year - 1952)  I(year^2 - 1952^2)  
+    ##          5.862e+01           3.366e+04          -2.240e+01  
+    ## I(year^3 - 1952^3)  I(year^5 - 1952^5)  
+    ##          5.590e-03          -1.392e-10
+
+So, when we start with a model that has the highest term being of order 6, the best resulting model according to stepAIC() is with the linear term, the quadratic term, the cubic term and fifth order term. So, the equation of the model would be something like `lifeExp_predict = 6.696e+01 + 101900*(year - 1952) - 6.852e+01*(year^2 - 1952^2) + 1.727e-02*(year^3 - 1952^3) - 4.389e-10*(year^5 - 1952^5)`.
 
 Finally, the linear regression tutorial explains that it is a good idea to clean out the workspace and then retest the function using the least amount of code possible. Why? The reason is because there may be objects that we have used when we created or tested our function that were in the workspace, but not ever defined in the function or put as arguments.
 
@@ -576,7 +683,7 @@ rm(list = ls())
 
 est_of_quad_fit <- function(dat, offset = 1952){
   the_fit <- lm(lifeExp ~ I(year - 1952) + I(year^2 - 1952^2), dat)
-  setNames(coef(the_fit), c("intercept", "linear coefficient", "quadratic coefficient"))
+  setNames(coef(the_fit), c("intercept", "slope", "curvature"))
   
 }
 
@@ -584,7 +691,7 @@ est_of_quad_fit(gapminder %>%
     filter(country == "Jamaica"))
 ```
 
-    ##             intercept    linear coefficient quadratic coefficient 
-    ##          59.540153846          27.178585315          -0.006809091
+    ##    intercept        slope    curvature 
+    ## 59.540153846 27.178585315 -0.006809091
 
-The three coefficient estimates for the intercept, linear coefficient and quadratic coefficient match the prior results of the test (when I didn't clear the workspace). So, all is well. I should run a few more tests on the function with other countries to fully convince myself that the function works properly and see if any curious cases (or errors) pop up. But, I will spare you the details.
+The three coefficient estimates for the intercept, linear coefficient (slope) and quadratic coefficient (curvature) match the prior results of the test (when I didn't clear the workspace). So, all is well. I should run a few more tests on the function with other countries to fully convince myself that the function works properly and see if any curious cases (or errors) pop up. But, I will spare you the details.
