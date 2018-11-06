@@ -11,6 +11,11 @@ Table of contents
     -   [Exercise 2: Difference between sep and collapse arguments to str\_c()](#exercise-2-difference-between-sep-and-collapse-arguments-to-str_c)
     -   [Exercise 3: Write a function that turns a vector into a string](#exercise-3-write-a-function-that-turns-a-vector-into-a-string)
     -   [Exercise 4: Create regular expressions to find all words](#exercise-4-create-regular-expressions-to-find-all-words)
+-   [Part 2: Writing Functions](#part-2-writing-functions)
+    -   [Focus on one country for a quadratic regression example](#focus-on-one-country-for-a-quadratic-regression-example)
+    -   [Code that works using I()](#code-that-works-using-i)
+    -   [Create a function to obtain the offset quadratic regression coefficients](#create-a-function-to-obtain-the-offset-quadratic-regression-coefficients)
+    -   [Test on other gapminder countries](#test-on-other-gapminder-countries)
 
 Part 1: Character Data Overview
 ===============================
@@ -391,3 +396,195 @@ library(gapminder)
 ```
 
 To fit the quadratic model, it is easiest to think of it as a linear regression model with two variables - the original term and the squared original term.
+
+Focus on one country for a quadratic regression example
+-------------------------------------------------------
+
+Like in the simple regression example from [here](http://stat545.com/block012_function-regress-lifeexp-on-year.html), we shall just focus on one country to illustrate the quadratic regression concept in a simple, but effective way.
+
+``` r
+j_country <- "Ireland" # note that we coded this such that Ireland could be replaced by any country
+(j_dat <- gapminder %>% 
+    filter(country == j_country))
+```
+
+    ## # A tibble: 12 x 6
+    ##    country continent  year lifeExp     pop gdpPercap
+    ##    <fct>   <fct>     <int>   <dbl>   <int>     <dbl>
+    ##  1 Ireland Europe     1952    66.9 2952156     5210.
+    ##  2 Ireland Europe     1957    68.9 2878220     5599.
+    ##  3 Ireland Europe     1962    70.3 2830000     6632.
+    ##  4 Ireland Europe     1967    71.1 2900100     7656.
+    ##  5 Ireland Europe     1972    71.3 3024400     9531.
+    ##  6 Ireland Europe     1977    72.0 3271900    11151.
+    ##  7 Ireland Europe     1982    73.1 3480000    12618.
+    ##  8 Ireland Europe     1987    74.4 3539900    13873.
+    ##  9 Ireland Europe     1992    75.5 3557761    17559.
+    ## 10 Ireland Europe     1997    76.1 3667233    24522.
+    ## 11 Ireland Europe     2002    77.8 3879155    34077.
+    ## 12 Ireland Europe     2007    78.9 4109086    40676.
+
+We shall do a simple plot of the quadratic regression for this country's life expectancy over the years using stat\_smooth().
+
+Why did we choose to use stat\_smooth() over geom\_smooth()?
+
+Well geom\_smooth() and stat\_smooth() have the same arguments, but it is good practice to choose stat\_smooth() if you want to display a non-standard shape (curve in our case).
+
+``` r
+p <- ggplot(j_dat, aes(x = year, y = lifeExp))
+
+p + geom_point() + stat_smooth(method = "lm", formula = y ~ x + I(x^2), size = 1) + ggtitle("Quadratic regression of Ireland's lifeExp over the years")
+```
+
+![](HW06-Data-wrangling-wrap-up_files/figure-markdown_github/unnamed-chunk-26-1.png)
+
+Now, one important thing to note in the formula for quadratic regression is that we used `I()` to surround our quadratic term. Why did we have to do that? Well, `I()` isolates what is inside its brackets letting our squared operation will work the same as if we used it outside the formula ([source](https://stackoverflow.com/questions/24192428/what-does-the-capital-letter-i-in-r-linear-regression-formula-mean/24192745#24192745)). If we simply typed something like `y ~ x + x^2`, R would interpret this as x = the main effect and x^2 = the main effect and second order interaction of x (NOT x-squared). The result is that we would only get the main effect, x, in the model (as I will show below).
+
+Say we tried to fit the quadratic regression without `I()` surrounding our squared element. What do we see?
+
+``` r
+j_fit <- lm(lifeExp ~ year + year^2, j_dat)
+
+coef(j_fit) # coefficients of the model
+```
+
+    ##  (Intercept)         year 
+    ## -321.1399594    0.1991196
+
+As we thought, we only get the intercept and year coefficient. There is no quadratic coefficient to be seen.
+
+Code that works using I()
+-------------------------
+
+Next, we will fit the quadratic regression correctly using `I()` surrounding our squared element.
+
+``` r
+j_fit <- lm(lifeExp ~ year + I(year^2), j_dat)
+
+coef(j_fit)  # coefficients of the model
+```
+
+    ##   (Intercept)          year     I(year^2) 
+    ##  1.158548e+03 -1.296006e+00  3.776523e-04
+
+Now, are those estimates reasonable? Nope. For example, the intercept estimate for the life expectancy is 1158.548 years corresponding to the year 0 AD. Such a high life expectancy is unheard of! Hence, we must reparameterize our model. It makes more sense to make the intercept correspond to the life expectancy in 1952 (because that is the first year our data set has information on). We shall achieve this by correcting the linear term's life expectancy by subtracting 1952. Also, we must correct the quadratic term's life expectancy by subtracting 1952 squared. Let's see if our estimates are more realistic when we do this...
+
+``` r
+j_fit <- lm(lifeExp ~ I(year - 1952) + I(year^2 - 1952^2), j_dat)
+
+coef(j_fit)  # coefficients of the model
+```
+
+    ##        (Intercept)     I(year - 1952) I(year^2 - 1952^2) 
+    ##      67.7145521978      -1.2960060639       0.0003776523
+
+Much better. We can see the estimated lifeExp in 1952 is 67.7145521978 years of age, which is pretty reasonable.
+
+Create a function to obtain the offset quadratic regression coefficients
+------------------------------------------------------------------------
+
+Now, we are ready and have reason to create a function. To clarify, it would make sense to want to create a function to obtain the quadratic regression coefficient estimates with the intercept year offset to 1952. Having access to such a function will make it easy for us to look at the life expectancy of different countries.
+
+Let's create the function below that has a default life expectancy of the year 1952. Having the offset set by default to the year 1952 makes sense because the gapminder countries have 1952 as the first date with other corresponding data. We will make sure it works by testing it on our `j_dat` pertaining to Ireland's lifeExp. Hence, we should get the same coefficients as above when we looked at `coef(j_fit)`.
+
+``` r
+est_of_quad_fit <- function(dat, offset = 1952){
+  the_fit <- lm(lifeExp ~ I(year - 1952) + I(year^2 - 1952^2), dat)
+  coef(the_fit)
+}
+
+est_of_quad_fit(j_dat)
+```
+
+    ##        (Intercept)     I(year - 1952) I(year^2 - 1952^2) 
+    ##      67.7145521978      -1.2960060639       0.0003776523
+
+The coefficients produced by `coef(j_fit)` and by our function `est_of_quad_fit` are precisely the same.
+
+Now, was was said in the 545 notes on linear regression, the return value names I(year - 1952) and I(year^2 - 1952^2), are not particularly pretty or informative. It is good practice to fix those names now to something a little more descriptive. We shall do so inside the function so that we regardless of what data we put into our function, wedon't have to change the names of the linear and quadratic estimates. Additionally, since we are already changing the names of the linear and quadratic estimates, we shall also tweak the format of the intercept name so there are no brackets around it.
+
+``` r
+est_of_quad_fit <- function(dat, offset = 1952){
+  the_fit <- lm(lifeExp ~ I(year - 1952) + I(year^2 - 1952^2), dat)
+  setNames(coef(the_fit), c("intercept", "linear coefficient", "quadratic coefficient"))
+  
+}
+
+est_of_quad_fit(j_dat)
+```
+
+    ##             intercept    linear coefficient quadratic coefficient 
+    ##         67.7145521978         -1.2960060639          0.0003776523
+
+Test on other gapminder countries
+---------------------------------
+
+We shall test the est\_of\_quad\_fit function on a couple other countries from the gapminder data set to ensure that the function is doing what we want and producing the correct output.
+
+Let's filter to the Jamaica rows of the gapminder data set and store them to `j_dat`.
+
+``` r
+j_country <- "Jamaica"
+
+(j_dat <- gapminder %>% 
+    filter(country == j_country))
+```
+
+    ## # A tibble: 12 x 6
+    ##    country continent  year lifeExp     pop gdpPercap
+    ##    <fct>   <fct>     <int>   <dbl>   <int>     <dbl>
+    ##  1 Jamaica Americas   1952    58.5 1426095     2899.
+    ##  2 Jamaica Americas   1957    62.6 1535090     4757.
+    ##  3 Jamaica Americas   1962    65.6 1665128     5246.
+    ##  4 Jamaica Americas   1967    67.5 1861096     6125.
+    ##  5 Jamaica Americas   1972    69   1997616     7434.
+    ##  6 Jamaica Americas   1977    70.1 2156814     6650.
+    ##  7 Jamaica Americas   1982    71.2 2298309     6068.
+    ##  8 Jamaica Americas   1987    71.8 2326606     6351.
+    ##  9 Jamaica Americas   1992    71.8 2378618     7405.
+    ## 10 Jamaica Americas   1997    72.3 2531311     7122.
+    ## 11 Jamaica Americas   2002    72.0 2664659     6995.
+    ## 12 Jamaica Americas   2007    72.6 2780132     7321.
+
+Next, we will perform quadratic regression on the Jamaica data and plot the output.
+
+``` r
+p <- ggplot(j_dat, aes(x = year, y = lifeExp))
+
+p + geom_point() + stat_smooth(method = "lm", formula = y ~ x + I(x^2), size = 1) + ggtitle("Quadratic regression of Jamaica's lifeExp over the years")
+```
+
+![](HW06-Data-wrangling-wrap-up_files/figure-markdown_github/unnamed-chunk-33-1.png)
+
+Now, we will fit a quadratic model to the data using our handy est\_of\_quad\_fit function.
+
+``` r
+est_of_quad_fit(j_dat)
+```
+
+    ##             intercept    linear coefficient quadratic coefficient 
+    ##          59.540153846          27.178585315          -0.006809091
+
+Based on the intercept and linear and quadratic coefficients, the quadratic fit is not too shabby because the plot and the estimated coefficients roughly match up.
+
+Finally, the linear regression tutorial explains that it is a good idea to clean out the workspace and then retest the function using the least amount of code possible. Why? The reason is because there may be objects that we have used when we created or tested our function that were in the workspace, but not ever defined in the function or put as arguments.
+
+So, after clearing my workspace using `rm(list = ls())`, I will test the function again on the Jamaica data to make sure the results of my prior test and this test are the same.
+
+``` r
+rm(list = ls())
+
+est_of_quad_fit <- function(dat, offset = 1952){
+  the_fit <- lm(lifeExp ~ I(year - 1952) + I(year^2 - 1952^2), dat)
+  setNames(coef(the_fit), c("intercept", "linear coefficient", "quadratic coefficient"))
+  
+}
+
+est_of_quad_fit(gapminder %>% 
+    filter(country == "Jamaica"))
+```
+
+    ##             intercept    linear coefficient quadratic coefficient 
+    ##          59.540153846          27.178585315          -0.006809091
+
+The three coefficient estimates for the intercept, linear coefficient and quadratic coefficient match the prior results of the test (when I didn't clear the workspace). So, all is well. I should run a few more tests on the function with other countries to fully convince myself that the function works properly and see if any curious cases (or errors) pop up. But, I will spare you the details.
