@@ -458,8 +458,8 @@ First, we will simply generate 20 strings of length 3.
 stri_rand_strings(20, 3)
 ```
 
-    ##  [1] "r1b" "Z6b" "xNy" "IUD" "Waw" "xV6" "f2y" "Lzh" "ypD" "8aK" "f1B"
-    ## [12] "nd0" "XtU" "F4i" "ktD" "AyC" "2FB" "Lg9" "v4d" "IyC"
+    ##  [1] "h37" "5NB" "qvA" "m4T" "gd9" "O0x" "3Dy" "Kht" "htr" "95N" "wq2"
+    ## [12] "Cp7" "zZU" "sCz" "OZ1" "lPB" "U1h" "hB7" "5Ig" "WU8"
 
 Now, let's just make the 20 strings, each of length 3 just drawn from the lowercase letters in the alphabet.
 
@@ -467,8 +467,8 @@ Now, let's just make the 20 strings, each of length 3 just drawn from the lowerc
 stri_rand_strings(20, 3, pattern = "[a-z]")
 ```
 
-    ##  [1] "fvc" "mkd" "obh" "zng" "ucf" "dxc" "lqo" "bib" "dgm" "fch" "kmd"
-    ## [12] "eeq" "vke" "yzq" "zfb" "amq" "dql" "yxo" "mcz" "uco"
+    ##  [1] "dgn" "fyo" "dwn" "hzb" "hsv" "axr" "hbv" "mkk" "ifx" "pey" "whh"
+    ## [12] "yzd" "obz" "qrx" "soi" "pva" "tjv" "hil" "qps" "vmf"
 
 What if we wanted the 20 lowercase letter strings to be each of random length? We can use the sample function to achieve that as follows. The sample function first parameter pertains to the elements that can be chosen for the sample. The second parameter is the number of items in the sample. Finally, the third parameter, which is replace = TRUE, just indicates that the sampling is done with replacement.
 
@@ -478,10 +478,10 @@ For example, in the below sample function, the first 10 letters may be chosen fo
 stri_rand_strings(20, sample(1:10, size = 20, replace = TRUE), pattern = "[a-z]")
 ```
 
-    ##  [1] "n"          "c"          "tu"         "b"          "ujmsj"     
-    ##  [6] "uvnes"      "wlqnrhjnc"  "bnzxyt"     "lcjw"       "rsc"       
-    ## [11] "ep"         "eljw"       "ewznn"      "qtoc"       "znaazsf"   
-    ## [16] "tvs"        "xoxfq"      "pnxgvkyxoy" "cyi"        "mgwyuogecu"
+    ##  [1] "mzharcq"    "xx"         "delrbums"   "zhuxolhuwd" "ftgtw"     
+    ##  [6] "fetdds"     "wlhl"       "ubagicjfib" "yfx"        "dxg"       
+    ## [11] "gvtgseavw"  "rn"         "txldujqrp"  "yk"         "xqhwng"    
+    ## [16] "dbp"        "niglv"      "uwb"        "fbdnf"      "t"
 
 So, what is the use of the stri\_rand\_strings function? It's kinda fun to play around with, but what is a practical use.
 
@@ -501,7 +501,7 @@ stri_rand_shuffle(stri_paste(
 ))
 ```
 
-    ## [1] "ydcXmec" "kisVF"   "5k79Z9O" "6esnqE"  "wKLLWRv"
+    ## [1] "JeI6jl"  "E8DhMbp" "erNeC"   "42dUP"   "n7i8Evd"
 
 So, the output is 5 pseudorandom generated "passwords" that don't look to be too easy to crack.
 
@@ -605,7 +605,7 @@ coef(q_j_fit)  # coefficients of the model
     ##        (Intercept)     I(year - 1952) I(year^2 - 1952^2) 
     ##      67.7145521978      -1.2960060639       0.0003776523
 
-We can see the estimated lifeExp in 1952 is 67.7145521978 years of age, which is pretty reasonable. However, notice that the slope coefficient from the quadratic model is negative, which doesn't make sense given that our plot of quadratic regression of Ireland's lifeExp over the years shows a roughly straight line with positive slope. What is happening is that the model is fitting a line to best explain the data and the line is a straight line and not a quadratic curve.
+We can see the estimated lifeExp in 1952 is 67.7145521978 years of age, which is pretty reasonable. However, notice that the slope coefficient from the quadratic model is negative, which doesn't make sense given that our plot of quadratic regression of Ireland's lifeExp over the years shows a roughly straight line with positive slope. What is happening is that the model is fitting a curve to best explain the data, which is just is a straight line and not a quadratic curve. So, the coefficients are messed up because the better model would be the linear regression model and not the quadratic model.
 
 We can test whether or not the quadratic model is actually contributing significant information to the model is to do an ANOVA of the reduced model (linear model) versus the full model (the quadratic model because it includes the linear term).
 

@@ -507,7 +507,7 @@ q_j_fit <- lm(lifeExp ~ I(year - 1952) + I(year^2 - 1952^2), data = j_dat)
 
 coef(q_j_fit)  # coefficients of the model
 ```
-We can see the estimated lifeExp in 1952 is 67.7145521978 years of age, which is pretty reasonable. However, notice that the slope coefficient from the quadratic model is negative, which doesn't make sense given that our plot of quadratic regression of Ireland's lifeExp over the years shows a roughly straight line with positive slope. What is happening is that the model is fitting a line to best explain the data and the line is a straight line and not a quadratic curve.
+We can see the estimated lifeExp in 1952 is 67.7145521978 years of age, which is pretty reasonable. However, notice that the slope coefficient from the quadratic model is negative, which doesn't make sense given that our plot of quadratic regression of Ireland's lifeExp over the years shows a roughly straight line with positive slope. What is happening is that the model is fitting a curve to best explain the data, which is just is a straight line and not a quadratic curve. So, the coefficients are messed up because the better model would be the simple linear regression model and not the quadratic model.
 
 We can test whether or not the quadratic model is actually contributing significant information to the model is to do an ANOVA of the reduced model (linear model) versus the full model (the quadratic model because it includes the linear term).
 
