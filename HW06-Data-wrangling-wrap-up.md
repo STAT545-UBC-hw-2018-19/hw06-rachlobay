@@ -11,6 +11,7 @@ Table of contents
     -   [Exercise 2: Difference between sep and collapse arguments to str\_c()](#exercise-2-difference-between-sep-and-collapse-arguments-to-str_c)
     -   [Exercise 3: Write a function that turns a vector into a string](#exercise-3-write-a-function-that-turns-a-vector-into-a-string)
     -   [Exercise 4: Create regular expressions to find all words](#exercise-4-create-regular-expressions-to-find-all-words)
+    -   [Exercise 5: Stringi package functions](#exercise-5-stringi-package-functions)
 -   [Part 2: Writing Functions](#part-2-writing-functions)
     -   [Focus on one country for a quadratic regression example](#focus-on-one-country-for-a-quadratic-regression-example)
     -   [Code that works using I()](#code-that-works-using-i)
@@ -27,6 +28,7 @@ First, I will load the necessary packages for this part of the assignment.
 ``` r
 library(tidyverse)
 library(stringr)
+library(stringi)
 ```
 
 Exercise 1: Difference between paste() and paste0()
@@ -368,29 +370,140 @@ str_view_all("i(ng|se)$", match = TRUE)
 
 Again, we get that it appears to produce the correct output, giving us the words that end with `ing` or `ise`. So, our winning streak continues.
 
-14.7.1 Exercise \# 1 on Stringi package functions
--------------------------------------------------
+Exercise 5: Stringi package functions
+-------------------------------------
 
 Since the next two problems use the Stringi package, I will try to elaborate a bit on what that package is. Additionally, I will mention some of the main differences between the Stringi and Stringr packages (since they sound similar enough).
 
 From the [stringi-package documentation](https://www.rdocumentation.org/packages/stringi/versions/1.2.4/topics/stringi-package), it is marketed as being "the R package for fast, correct, consistent, and convenient string/text manipulation. It gives predictable results on every platform, in each locale, and under any \`\`native". I think that about sums up the overall view of the package. However, that definition makes it sound similar to stringr, no?
 
-So, now I will try to differentiate between the two packages, stringi and stringr.
+So, now I will try to differentiate between the two packages, stringi and stringr (using [this reference](https://rud.is/b/2017/02/06/strung-out-on-string-ops-a-brief-comparison-of-stringi-and-stringr/))
 
-Question:
+One major point is that stringr acts as a wrapper on stringi functions. Additionally, some of the stringr functions may refer to more than one stringi function. Stringr has the basic set of functions that are common to the stringi package, while stringi itself has more functions that are in-depth and that handle many different situations. For instance, according to [here](https://r4ds.had.co.nz/strings.html) stringr has a paltry 46 functions in comparison to string's 234 functions. Although for our use, we can probably get by with the basics... if a string operation is giving you grief, it is a good idea to see if any of the functions in stringi can help.
+
+Also, note that main difference in the structure of the functions is that stringi has `stri_`, while stringr just has `str_`.
+
+Question from Section 14.7.1:
 
 Find the stringi functions that:
 
 1.  Count the number of words.
-2.  Find duplicated strings.
-3.  Generate random text.
 
-14.7.2 Exercise \# 2 on Stringi package functions
--------------------------------------------------
+Answer:
 
-Question:
+stri\_count\_words()
 
-How do you control the language that stri\_sort() uses for sorting?
+Example of the function in action:
+
+Say we have a string `It's supercalifragilisticexpialidocious even though the sound of it is something quite atrocious`. What is the word count of the string?
+
+``` r
+mary_poppins_supercali <- "It's supercalifragilisticexpialidocious even though the sound of it is something quite atrocious"
+
+stri_count_words(mary_poppins_supercali)
+```
+
+    ## [1] 12
+
+We can eyeball the number of words to confirm that there are indeed 12 words in the mary\_poppins\_supercali string.
+
+1.  Find duplicated strings.
+
+Answer:
+
+stri\_duplicated()
+
+Example of the function in action:
+
+Suppose we have a vector of strings and we want to see if any of the strings are duplicates of any of the others in the vector. We can use stri\_duplicated(), which will return an output of boolean variables saying TRUE if a string is a duplicate of a previous string in the vector or FALSE if the string is not a duplicate of a prior string in the vector.
+
+``` r
+stri_duplicated(c("Alfred", "Robin", "The Joker", "Catwoman", "Alfred", "Alfred", "robin"))
+```
+
+    ## [1] FALSE FALSE FALSE FALSE  TRUE  TRUE FALSE
+
+So, stri\_duplicated() did catch the two duplicates of "Alfred". We should note that stri\_duplicated() is case-sensitive. So, the function did not say that "robin" was a duplicate of "Robin". We could solve this by using the function `stri_trans_tolower()`. Let's try that real quick.
+
+``` r
+stri_duplicated(stri_trans_tolower(c("Alfred", "Robin", "The Joker", "Catwoman", "Alfred", "Alfred", "robin")))
+```
+
+    ## [1] FALSE FALSE FALSE FALSE  TRUE  TRUE  TRUE
+
+Jackpot. We see that "robin" is now considered to be a duplicate of "Robin".
+
+``` r
+stri_duplicated(c(NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, "Batman!"))
+```
+
+    ##  [1] FALSE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE
+    ## [12]  TRUE  TRUE  TRUE FALSE
+
+It is interesting to note that stri\_duplicated() picks up duplicates of NA as well as we can see from the above example.
+
+1.  Generate random text.
+
+Answer:
+
+stri\_rand\_strings()
+
+Example of the function in action:
+
+For this function, we should pay close attention to the parameters. From the [function documention](https://www.rdocumentation.org/packages/stringi/versions/1.2.4/topics/stri_rand_strings), we have `stri_rand_strings(n, length, pattern = "[A-Za-z0-9]")`, where n is the number of strings that we want, the length is the length of the strings that we want, and the pattern specifies where we want to get our characters from. See [here](https://www.rdocumentation.org/packages/stringi/versions/1.2.4/topics/stringi-search-charclass) for some of the possible patterns you could use. The default is drawing from the letters A-Z, a-z, and 0-9.
+
+First, we will simply generate 20 strings of length 3.
+
+``` r
+stri_rand_strings(20, 3)
+```
+
+    ##  [1] "r1b" "Z6b" "xNy" "IUD" "Waw" "xV6" "f2y" "Lzh" "ypD" "8aK" "f1B"
+    ## [12] "nd0" "XtU" "F4i" "ktD" "AyC" "2FB" "Lg9" "v4d" "IyC"
+
+Now, let's just make the 20 strings, each of length 3 just drawn from the lowercase letters in the alphabet.
+
+``` r
+stri_rand_strings(20, 3, pattern = "[a-z]")
+```
+
+    ##  [1] "fvc" "mkd" "obh" "zng" "ucf" "dxc" "lqo" "bib" "dgm" "fch" "kmd"
+    ## [12] "eeq" "vke" "yzq" "zfb" "amq" "dql" "yxo" "mcz" "uco"
+
+What if we wanted the 20 lowercase letter strings to be each of random length? We can use the sample function to achieve that as follows. The sample function first parameter pertains to the elements that can be chosen for the sample. The second parameter is the number of items in the sample. Finally, the third parameter, which is replace = TRUE, just indicates that the sampling is done with replacement.
+
+For example, in the below sample function, the first 10 letters may be chosen for the sample and the size (number of items) of the sample is 20.
+
+``` r
+stri_rand_strings(20, sample(1:10, size = 20, replace = TRUE), pattern = "[a-z]")
+```
+
+    ##  [1] "n"          "c"          "tu"         "b"          "ujmsj"     
+    ##  [6] "uvnes"      "wlqnrhjnc"  "bnzxyt"     "lcjw"       "rsc"       
+    ## [11] "ep"         "eljw"       "ewznn"      "qtoc"       "znaazsf"   
+    ## [16] "tvs"        "xoxfq"      "pnxgvkyxoy" "cyi"        "mgwyuogecu"
+
+So, what is the use of the stri\_rand\_strings function? It's kinda fun to play around with, but what is a practical use.
+
+Well, from the function documentation [here](https://www.rdocumentation.org/packages/stringi/versions/1.2.4/topics/stri_rand_strings), there is an interesting example that looks to generate n random passwords of length in \[8, 14\]. The passwords consist of at least one digit, one small and one large ASCII letter.
+
+I will look at a simpler version of that example below. The below example will consist of at least one lowercase and uppercase letter. Furthermore, the length of each password will be between 5 and 7 characters (of either uppercase or lowercase letters or numbers between 0 to 9).
+
+Note that the below code uses stri\_rand\_shuffle(), which gives a "random" permutation of the elements in the string.
+
+``` r
+n <- 5 # number of passwords
+
+stri_rand_shuffle(stri_paste(
+   stri_rand_strings(n, 1, '[a-z]'), # gives 5 strings of lowercase letters where each string is of length 1
+   stri_rand_strings(n, 1, '[A-Z]'), # gives 5 strings of uppercase letters where each string is of length 1
+   stri_rand_strings(n, sample(3:5, size = 5, replace=TRUE), '[a-zA-Z0-9]') # gives 5 strings of length 3 - 5 of any lowercase or uppercase letters or numbers between 0 and 9
+))
+```
+
+    ## [1] "ydcXmec" "kisVF"   "5k79Z9O" "6esnqE"  "wKLLWRv"
+
+So, the output is 5 pseudorandom generated "passwords" that don't look to be too easy to crack.
 
 Part 2: Writing Functions
 =========================
@@ -450,7 +563,7 @@ p <- ggplot(j_dat, aes(x = year, y = lifeExp))
 p + geom_point() + stat_smooth(method = "lm", formula = y ~ x + I(x^2), size = 1) + ggtitle("Quadratic regression of Ireland's lifeExp over the years")
 ```
 
-![](HW06-Data-wrangling-wrap-up_files/figure-markdown_github/unnamed-chunk-26-1.png)
+![](HW06-Data-wrangling-wrap-up_files/figure-markdown_github/unnamed-chunk-34-1.png)
 
 Now, one important thing to note in the formula for quadratic regression is that we used `I()` to surround our quadratic term. Why did we have to do that? Well, `I()` isolates what is inside its brackets letting our squared operation will work the same as if we used it outside the formula ([source](https://stackoverflow.com/questions/24192428/what-does-the-capital-letter-i-in-r-linear-regression-formula-mean/24192745#24192745)). If we simply typed something like `y ~ x + x^2`, R would interpret this as x = the main effect and x^2 = the main effect and second order interaction of x (NOT x-squared). The result is that we would only get the main effect, x, in the model (as I will show below).
 
@@ -525,7 +638,7 @@ p <- ggplot(j_dat, aes(x = year, y = lifeExp))
 p + geom_point() + geom_smooth(method = "lm", formula = y ~ x, size = 1) + ggtitle("Linear regression of Ireland's lifeExp over the years")
 ```
 
-![](HW06-Data-wrangling-wrap-up_files/figure-markdown_github/unnamed-chunk-31-1.png)
+![](HW06-Data-wrangling-wrap-up_files/figure-markdown_github/unnamed-chunk-39-1.png)
 
 Now, we will create a new data frame of a couple of years and see what the model gives us as the predictions for lifeExp for a few years that are within the range of years of our model (1952 to 2007).
 
@@ -613,7 +726,7 @@ p <- ggplot(j_dat, aes(x = year, y = lifeExp))
 p + geom_point() + stat_smooth(method = "lm", formula = y ~ x + I(x^2), size = 1) + ggtitle("Quadratic regression of Jamaica's lifeExp over the years")
 ```
 
-![](HW06-Data-wrangling-wrap-up_files/figure-markdown_github/unnamed-chunk-36-1.png)
+![](HW06-Data-wrangling-wrap-up_files/figure-markdown_github/unnamed-chunk-44-1.png)
 
 Now, we will fit a quadratic model to the data using our handy est\_of\_quad\_fit function.
 
